@@ -113,54 +113,260 @@ onBeforeUnmount(() => { window.removeEventListener('beforeunload', aoBeforeUnloa
 
 <template>
   <div class="gestao-horarios">
+    <!-- Cabeçalho -->
     <header class="pagina-header">
       <div>
         <h1 class="titulo">Gestão de Horários</h1>
-        <p class="subtitulo">Olá, {{ userName }} — seus horários semanais de atendimento</p>
+        <p class="subtitulo">Olá, {{ userName }} &mdash; configure seus horários semanais de atendimento</p>
       </div>
       <button type="button" class="btn-voltar" @click="tentarSairPara('/agendamentos')">Voltar</button>
     </header>
+
+    <!-- Indicador de progresso -->
     <section class="indicador">
-      <div class="indicador-texto">
-        <span class="indicador-rotulo">Carga semanal</span>
-        <span class="indicador-valor">{{ horasTotaisFmt }}h de {{ metaHoras }}h</span>
-        <span v-if="!metaConcluida" class="indicador-falta">faltam {{ faltamFmt }}h</span>
-        <span v-else class="indicador-ok">Tempo semanal concluído</span>
+      <div class="indicador-topo">
+        <div class="indicador-texto">
+          <span class="indicador-rotulo">Carga semanal</span>
+          <span class="indicador-valor">{{ horasTotaisFmt }}h <span class="indicador-meta">/ {{ metaHoras }}h</span></span>
+        </div>
+        <div class="indicador-status">
+          <span v-if="!metaConcluida" class="indicador-falta">Faltam {{ faltamFmt }}h</span>
+          <span v-else class="indicador-ok">Carga semanal concluída</span>
+        </div>
       </div>
-      <div class="barra"><div class="barra-preenchida" :style="{ width: percentual + '%' }"></div></div>
+      <div class="barra">
+        <div class="barra-preenchida" :style="{ width: percentual + '%' }"></div>
+      </div>
       <div class="indicador-detalhe">
-        <span>Salvo: {{ horasSalvasFmt }}h</span>
-        <span>Rascunho: {{ formatarHoras(minRascunho) }}h ({{ rascunho.length }})</span>
+        <span>Salvo: <strong>{{ horasSalvasFmt }}h</strong></span>
+        <span>Rascunho: <strong>{{ formatarHoras(minRascunho) }}h</strong> ({{ rascunho.length }} item{{ rascunho.length !== 1 ? 's' : '' }})</span>
       </div>
     </section>
+
+    <!-- Erro de grade -->
     <p v-if="erroGrade" class="erro-grade">{{ erroGrade }}</p>
-    <WeekGrid :dias="DIAS" :por-dia="porDia" :meta-concluida="metaConcluida" @adicionar="abrirModal" @remover-rascunho="removerRascunho" @remover-salvo="removerSalvo" />
+
+    <!-- Grade semanal -->
+    <WeekGrid
+      :dias="DIAS"
+      :por-dia="porDia"
+      :meta-concluida="metaConcluida"
+      @adicionar="abrirModal"
+      @remover-rascunho="removerRascunho"
+      @remover-salvo="removerSalvo"
+    />
+
+    <!-- Ações -->
     <footer class="acoes-finais">
-      <button type="button" class="btn-confirmar" :disabled="rascunho.length === 0" @click="confirmar">Confirmar (salvar {{ rascunho.length }})</button>
-      <p class="ajuda">Sem confirmar, recarregar ou sair da tela descarta os novos horários.</p>
+      <button
+        type="button"
+        class="btn-confirmar"
+        :disabled="rascunho.length === 0"
+        @click="confirmar"
+      >
+        Confirmar e salvar ({{ rascunho.length }} item{{ rascunho.length !== 1 ? 's' : '' }})
+      </button>
+      <p class="ajuda">Sem confirmar, recarregar ou sair descarta os novos horários.</p>
     </footer>
-    <ModalHorario v-if="modalDia !== null" :dia-semana="modalDia" :nome-dia="nomeDiaPorValor(modalDia)" @fechar="fecharModal" @adicionar="adicionarRascunho" />
-    <ModalSair v-if="mostrarSair" :horas-salvas="horasSalvasFmt" :meta-horas="metaHoras" :qtd-rascunho="rascunho.length" @sair="confirmarSaida" @continuar="continuarEditando" />
+
+    <ModalHorario
+      v-if="modalDia !== null"
+      :dia-semana="modalDia"
+      :nome-dia="nomeDiaPorValor(modalDia)"
+      @fechar="fecharModal"
+      @adicionar="adicionarRascunho"
+    />
+    <ModalSair
+      v-if="mostrarSair"
+      :horas-salvas="horasSalvasFmt"
+      :meta-horas="metaHoras"
+      :qtd-rascunho="rascunho.length"
+      @sair="confirmarSaida"
+      @continuar="continuarEditando"
+    />
   </div>
 </template>
+
 <style scoped>
-.gestao-horarios { max-width: 1300px; margin: 0 auto; padding: 24px 16px; color: #1e293b; }
-.pagina-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-.titulo { margin: 0; font-size: 1.75rem; color: #0f172a; }
-.subtitulo { margin: 4px 0 0; color: #64748b; }
-.btn-voltar { padding: 8px 16px; border: 1px solid #cbd5e0; background: #fff; border-radius: 8px; cursor: pointer; color: #334155; font-weight: 600; }
-.indicador { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; }
-.indicador-texto { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.indicador-rotulo { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; }
-.indicador-valor { font-size: 1.5rem; font-weight: 800; color: #0f172a; }
-.indicador-falta { color: #b45309; font-weight: 600; }
-.indicador-ok { color: #059669; font-weight: 700; }
-.barra { height: 10px; background: #f1f5f9; border-radius: 8px; margin-top: 10px; overflow: hidden; }
-.barra-preenchida { height: 100%; background: #16a34a; transition: width 0.2s; }
-.indicador-detalhe { display: flex; gap: 16px; margin-top: 8px; color: #64748b; font-size: 0.85rem; flex-wrap: wrap; }
-.erro-grade { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 8px; padding: 10px 14px; }
-.acoes-finais { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
-.btn-confirmar { padding: 12px 24px; background: #16a34a; color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
-.btn-confirmar:disabled { background: #cbd5e0; cursor: not-allowed; }
-.ajuda { margin: 0; color: #64748b; font-size: 0.85rem; }
+.gestao-horarios {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  color: var(--color-text, #0d1b3e);
+}
+
+/* ── Cabeçalho ── */
+.pagina-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--color-border, #dde3ef);
+  flex-wrap: wrap;
+}
+
+.titulo {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--ser-navy, #003087);
+  letter-spacing: -0.02em;
+}
+
+.subtitulo {
+  margin: 4px 0 0;
+  color: #1e3a8a;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.btn-voltar {
+  padding: 8px 18px;
+  border: 1.5px solid var(--color-border, #dde3ef);
+  background: var(--ser-white, #fff);
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  color: var(--ser-gray-700, #374569);
+  font-weight: 500;
+  font-size: 0.875rem;
+  font-family: inherit;
+  transition: background 0.18s;
+  white-space: nowrap;
+}
+
+.btn-voltar:hover {
+  background: var(--ser-gray-100, #eef1f7);
+}
+
+/* ── Indicador de progresso ── */
+.indicador {
+  background: var(--ser-white, #fff);
+  border: 1px solid var(--color-border, #dde3ef);
+  border-radius: var(--radius-lg, 12px);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.indicador-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.indicador-texto {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.indicador-rotulo {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ser-gray-500, #6b7a99);
+  font-weight: 600;
+}
+
+.indicador-valor {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--ser-navy, #003087);
+}
+
+.indicador-meta {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--ser-gray-500, #6b7a99);
+}
+
+.indicador-falta {
+  color: #b45309;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.indicador-ok {
+  color: var(--color-success, #0a7a4a);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.barra {
+  height: 8px;
+  background: var(--ser-gray-100, #eef1f7);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.barra-preenchida {
+  height: 100%;
+  background: linear-gradient(90deg, #003087, #0045b5);
+  transition: width 0.3s ease;
+  border-radius: 8px;
+}
+
+.indicador-detalhe {
+  display: flex;
+  gap: 20px;
+  color: var(--ser-gray-500, #6b7a99);
+  font-size: 0.8125rem;
+  flex-wrap: wrap;
+}
+
+/* ── Erro ── */
+.erro-grade {
+  background: rgba(200, 16, 46, 0.06);
+  border: 1px solid rgba(200, 16, 46, 0.2);
+  color: var(--ser-red, #C8102E);
+  border-radius: var(--radius-md, 8px);
+  padding: 12px 16px;
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+}
+
+/* ── Ações finais ── */
+.acoes-finais {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.btn-confirmar {
+  padding: 12px 28px;
+  background: var(--color-success, #0a7a4a);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: background 0.18s;
+  font-family: inherit;
+}
+
+.btn-confirmar:hover:not(:disabled) {
+  background: #086040;
+}
+
+.btn-confirmar:disabled {
+  background: var(--ser-gray-200, #dde3ef);
+  color: var(--ser-gray-500, #6b7a99);
+  cursor: not-allowed;
+}
+
+.ajuda {
+  margin: 0;
+  color: var(--ser-gray-500, #6b7a99);
+  font-size: 0.8125rem;
+}
 </style>

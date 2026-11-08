@@ -2,12 +2,15 @@
   <div class="modal-backdrop" @click.self="$emit('continuar')">
     <div class="modal-card">
       <header class="modal-cabecalho">
-        <h2 class="modal-titulo">Horas não completas</h2>
+        <h2 class="modal-titulo">Alterações não salvas</h2>
         <button type="button" class="btn-fechar-icone" @click="$emit('continuar')">&times;</button>
       </header>
       <div class="modal-corpo">
         <p class="msg">As horas semanais <strong>não foram completas</strong> ou há alterações <strong>não salvas</strong>.</p>
-        <p class="resumo">Salvo: <strong>{{ horasSalvas }}h</strong> de <strong>{{ metaHoras }}h</strong> · Não salvos: <strong>{{ qtdRascunho }}</strong></p>
+        <div class="resumo">
+          <span>Horas salvas: <strong>{{ horasSalvas }}h</strong> de <strong>{{ metaHoras }}h</strong></span>
+          <span>Não salvos: <strong>{{ qtdRascunho }}</strong></span>
+        </div>
         <p class="alerta">Se sair agora sem confirmar, os novos horários serão descartados.</p>
       </div>
       <footer class="modal-rodape">
@@ -29,17 +32,123 @@ defineEmits(['sair', 'continuar'])
 </script>
 
 <style scoped>
-.modal-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.55); display: flex; align-items: center; justify-content: center; z-index: 1100; padding: 1rem; }
-.modal-card { background: #fff; border-radius: 12px; width: 100%; max-width: 460px; overflow: hidden; }
-.modal-cabecalho { display: flex; justify-content: space-between; align-items: center; padding: 1.1rem 1.4rem; border-bottom: 1px solid #e2e8f0; }
-.modal-titulo { margin: 0; font-size: 1.1rem; color: #b91c1c; }
-.btn-fechar-icone { background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b; }
-.modal-corpo { padding: 1.25rem 1.4rem; color: #334155; display: flex; flex-direction: column; gap: 8px; }
-.msg, .resumo, .alerta { margin: 0; }
-.resumo { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 8px 12px; }
-.alerta { font-size: 0.85rem; color: #92400e; }
-.modal-rodape { display: flex; justify-content: flex-end; gap: 0.75rem; padding: 1.1rem 1.4rem; background: #f8fafc; flex-wrap: wrap; }
-.btn-acao { padding: 0.55rem 1rem; border-radius: 8px; border: 1px solid transparent; cursor: pointer; font-weight: 600; }
-.btn-sair { background: #dc2626; color: #fff; }
-.btn-continuar { background: #16a34a; color: #fff; }
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 27, 62, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 1rem;
+  backdrop-filter: blur(2px);
+}
+
+.modal-card {
+  background: var(--ser-white, #fff);
+  border-radius: var(--radius-lg, 12px);
+  width: 100%;
+  max-width: 480px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 48, 135, 0.2);
+}
+
+.modal-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--color-border, #dde3ef);
+  background: var(--ser-gray-50, #f7f9fc);
+}
+
+.modal-titulo {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ser-red, #C8102E);
+}
+
+.btn-fechar-icone {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--ser-gray-500, #6b7a99);
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.btn-fechar-icone:hover {
+  color: var(--ser-gray-900, #0d1b3e);
+}
+
+.modal-corpo {
+  padding: 24px;
+  color: var(--ser-gray-700, #374569);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 0.9375rem;
+}
+
+.msg, .alerta {
+  margin: 0;
+}
+
+.resumo {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: rgba(200, 16, 46, 0.05);
+  border: 1px solid rgba(200, 16, 46, 0.15);
+  border-radius: var(--radius-md, 8px);
+  padding: 12px 16px;
+  font-size: 0.875rem;
+}
+
+.alerta {
+  font-size: 0.8125rem;
+  color: #b45309;
+}
+
+.modal-rodape {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  background: var(--ser-gray-50, #f7f9fc);
+  border-top: 1px solid var(--color-border, #dde3ef);
+  flex-wrap: wrap;
+}
+
+.btn-acao {
+  padding: 10px 20px;
+  border-radius: var(--radius-md, 8px);
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  transition: background 0.18s;
+}
+
+.btn-sair {
+  background: var(--ser-red, #C8102E);
+  color: #fff;
+}
+
+.btn-sair:hover {
+  background: var(--ser-red-dark, #9e0c24);
+}
+
+.btn-continuar {
+  background: var(--ser-navy, #003087);
+  color: #fff;
+}
+
+.btn-continuar:hover {
+  background: var(--ser-navy-light, #0045b5);
+}
 </style>

@@ -44,20 +44,88 @@ const agendamentosDia = computed(() => diaSelecionado.value ? appointmentStore.c
 const dataFormatada = computed(() => { if (!diaSelecionado.value) return ''; const [a, m, d] = diaSelecionado.value.split('-'); return `${d}/${m}/${a}` })
 const selecionarDia = (dia) => { diaSelecionado.value = dia.dataIso }
 </script>
+
 <template>
   <div class="calendario-container">
+    <!-- Cabeçalho -->
     <header class="header-section">
-      <div><h1 class="header-title">Calendário de Atendimento</h1><p class="header-subtitle">Visualização dos agendamentos confirmados</p></div>
-      <div class="badge-total"><span class="dot"></span><strong>{{ agendamentosConfirmados.length }}</strong>&nbsp;confirmados</div>
+      <div>
+        <h1 class="header-title">Calendário de Atendimento</h1>
+        <p class="header-subtitle">Visualização dos agendamentos confirmados</p>
+      </div>
+      <div class="badge-total">
+        <span class="badge-dot"></span>
+        <strong>{{ agendamentosConfirmados.length }}</strong>&nbsp;confirmados
+      </div>
     </header>
-    <TableList :days="gradeDias" :day-items="agendamentosDia" :week-days="diasSemana" :month-name="mesAtualNome" :year="anoAtual" :selected-day="diaSelecionado" :formatted-selected-day="dataFormatada" @prev="mesAnterior" @next="proximoMes" @today="irParaHoje" @select="selecionarDia" />
+
+    <TableList
+      :days="gradeDias"
+      :day-items="agendamentosDia"
+      :week-days="diasSemana"
+      :month-name="mesAtualNome"
+      :year="anoAtual"
+      :selected-day="diaSelecionado"
+      :formatted-selected-day="dataFormatada"
+      @prev="mesAnterior"
+      @next="proximoMes"
+      @today="irParaHoje"
+      @select="selecionarDia"
+    />
   </div>
 </template>
+
 <style scoped>
-.calendario-container { max-width: 1300px; margin: 0 auto; padding: 24px 20px; color: #2d3748; }
-.header-section { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; background: #fff; padding: 20px 24px; border-radius: 12px; margin-bottom: 24px; }
-.header-title { margin: 0; font-size: 1.75rem; color: #1a202c; }
-.header-subtitle { margin: 4px 0 0; color: #718096; }
-.badge-total { display: flex; align-items: center; gap: 8px; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 8px 16px; border-radius: 20px; }
-.dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; }
+.calendario-container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  color: var(--color-text, #0d1b3e);
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--color-border, #dde3ef);
+}
+
+.header-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--ser-navy, #003087);
+  letter-spacing: -0.02em;
+}
+
+.header-subtitle {
+  margin-top: 4px;
+  font-size: 0.95rem;
+  color: #1e3a8a;
+  font-weight: 500;
+}
+
+.badge-total {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(10, 122, 74, 0.08);
+  border: 1px solid rgba(10, 122, 74, 0.2);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  color: #0a7a4a;
+  font-weight: 500;
+}
+
+.badge-dot {
+  width: 8px;
+  height: 8px;
+  background: #0a7a4a;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
 </style>

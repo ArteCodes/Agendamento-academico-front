@@ -2,6 +2,7 @@
 import { RouterView, useRouter } from 'vue-router'
 import { useAuthStore } from '@/modules/auth/store/auth'
 import { storeToRefs } from 'pinia'
+import logoUninassau from '@/assets/logo-uninassau.png'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -14,10 +15,11 @@ function handleLogout() {
 </script>
 
 <template>
-  <!-- Navbar - só aparece se o usuário estiver autenticado -->
+  <!-- Navbar institucional branca com logo UNINASSAU -->
   <nav v-if="isAuthenticated" class="navbar">
     <div class="navbar-brand">
-      <span class="navbar-logo">📅</span>
+      <img :src="logoUninassau" alt="UNINASSAU" class="navbar-logo-img" />
+      <div class="brand-divider"></div>
       <span class="navbar-title">Sistema de Agendamentos</span>
     </div>
 
@@ -40,10 +42,12 @@ function handleLogout() {
     </div>
 
     <div class="navbar-user">
-      <span class="user-name">{{ userName }}</span>
-      <span class="user-badge" :class="{ 'badge-aluno': isAluno, 'badge-coord': isCoordenador }">
-        {{ isAluno ? 'Aluno' : 'Coordenador' }}
-      </span>
+      <div class="user-info">
+        <span class="user-name">{{ userName }}</span>
+        <span class="user-badge" :class="{ 'badge-aluno': isAluno, 'badge-coord': isCoordenador }">
+          {{ isAluno ? 'Aluno' : 'Coordenador' }}
+        </span>
+      </div>
       <button class="btn-logout" @click="handleLogout">Sair</button>
     </div>
   </nav>
@@ -58,112 +62,140 @@ function handleLogout() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
-  height: 60px;
-  background-color: #fff;
-  border-bottom: 1px solid #e0e0e0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 0 28px;
+  height: 68px;
+  background-color: #ffffff;
+  border-bottom: 3px solid #003087;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 100;
+  box-shadow: 0 2px 14px rgba(0, 48, 135, 0.08);
 }
 
+/* ── Brand com Logo UNINASSAU ── */
 .navbar-brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 14px;
 }
 
-.navbar-logo {
-  font-size: 24px;
+.navbar-logo-img {
+  height: 38px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.brand-divider {
+  width: 1px;
+  height: 28px;
+  background-color: #dde3ef;
 }
 
 .navbar-title {
-  font-weight: 600;
-  font-size: 16px;
-  color: #333;
+  font-weight: 800;
+  font-size: 15px;
+  color: #003087;
+  letter-spacing: -0.01em;
 }
 
+/* ── Links de Navegação com letras azuis ── */
 .navbar-links {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 .nav-link {
   padding: 8px 16px;
-  border-radius: 6px;
+  border-radius: 8px;
   text-decoration: none;
-  color: #555;
+  color: #003087;
   font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.2s, color 0.2s;
+  font-weight: 600;
+  transition: all 0.18s ease;
+  letter-spacing: 0.01em;
 }
 
 .nav-link:hover {
-  background-color: #f0f0f0;
-  color: #333;
+  background-color: rgba(0, 48, 135, 0.07);
+  color: #001f5a;
 }
 
 .nav-link.router-link-active {
-  background-color: #e8f5e9;
-  color: #2e7d32;
+  background-color: #003087;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 48, 135, 0.2);
 }
 
+/* ── Informações do Usuário ── */
 .navbar-user {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 16px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
 }
 
 .user-name {
-  font-size: 14px;
-  color: #555;
-  font-weight: 500;
+  font-size: 13.5px;
+  color: #003087;
+  font-weight: 700;
 }
 
 .user-badge {
-  font-size: 11px;
-  padding: 3px 8px;
+  font-size: 10px;
+  padding: 2px 8px;
   border-radius: 12px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
 }
 
 .badge-aluno {
-  background-color: #e3f2fd;
-  color: #1565c0;
+  background-color: rgba(0, 48, 135, 0.08);
+  color: #003087;
+  border: 1px solid rgba(0, 48, 135, 0.2);
 }
 
 .badge-coord {
-  background-color: #fce4ec;
-  color: #c62828;
+  background-color: rgba(200, 16, 46, 0.08);
+  color: #C8102E;
+  border: 1px solid rgba(200, 16, 46, 0.2);
 }
 
 .btn-logout {
-  padding: 6px 14px;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  background: #fff;
-  color: #666;
+  padding: 7px 16px;
+  border: 1.5px solid #dde3ef;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #374569;
   font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.18s ease;
+  letter-spacing: 0.01em;
 }
 
 .btn-logout:hover {
-  background: #f44336;
-  color: #fff;
-  border-color: #f44336;
+  background: #C8102E;
+  color: #ffffff;
+  border-color: #C8102E;
 }
 
+/* ── Layout ── */
 main {
   min-height: 100vh;
+  background-color: #f8fafc;
 }
 
 main.with-navbar {
-  padding-top: 60px;
+  padding-top: 68px;
 }
 </style>

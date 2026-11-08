@@ -27,18 +27,85 @@ const handleSalvar = () => {
   router.push('/agendamentos')
 }
 </script>
+
 <template>
   <div class="criar-container">
-    <div class="criar-card">
-      <h1>Criar Novo Agendamento</h1>
-      <p class="subtitle">Preencha os dados para agendar um atendimento</p>
-      <FormCreate :form="form" @update:field="updateField" @cancel="voltar" @submit="handleSalvar" />
+    <div class="criar-wrapper">
+      <!-- Cabeçalho da página -->
+      <div class="criar-header">
+        <div>
+          <h1 class="criar-title">Novo Agendamento</h1>
+          <p class="criar-subtitle">Preencha os dados abaixo para solicitar um atendimento</p>
+        </div>
+        <button type="button" class="btn-voltar" @click="voltar">Voltar</button>
+      </div>
+
+      <!-- Card do formulário -->
+      <div class="criar-card">
+        <FormCreate :form="form" @update:field="updateField" @cancel="voltar" @submit="handleSalvar" />
+      </div>
     </div>
   </div>
 </template>
+
 <style scoped>
-.criar-container { min-height: calc(100vh - 60px); background: #f5f5f5; display: flex; justify-content: center; padding: 40px 20px; }
-.criar-card { background: #fff; border-radius: 12px; padding: 40px; width: 100%; max-width: 560px; height: fit-content; }
-h1 { font-size: 24px; color: #333; margin: 0 0 4px; }
-.subtitle { color: #888; font-size: 14px; margin: 0 0 32px; }
+.criar-container {
+  min-height: calc(100vh - 64px);
+  background: var(--color-bg, #f7f9fc);
+  padding: 40px 24px;
+}
+
+.criar-wrapper {
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+/* ── Cabeçalho ── */
+.criar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.criar-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--ser-navy, #003087);
+  letter-spacing: -0.02em;
+}
+
+.criar-subtitle {
+  margin-top: 4px;
+  font-size: 0.875rem;
+  color: var(--ser-gray-500, #6b7a99);
+}
+
+.btn-voltar {
+  padding: 8px 18px;
+  border: 1.5px solid var(--color-border, #dde3ef);
+  border-radius: var(--radius-md, 8px);
+  background: var(--ser-white, #fff);
+  color: var(--ser-gray-700, #374569);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s;
+  white-space: nowrap;
+}
+
+.btn-voltar:hover {
+  background: var(--ser-gray-100, #eef1f7);
+}
+
+/* ── Card ── */
+.criar-card {
+  background: var(--ser-white, #fff);
+  border-radius: var(--radius-lg, 12px);
+  border-top: 4px solid var(--ser-navy, #003087);
+  padding: 36px 32px;
+  box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 48, 135, 0.12));
+}
 </style>

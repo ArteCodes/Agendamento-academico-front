@@ -4,7 +4,7 @@
       <thead>
         <tr>
           <th scope="col">Aluno</th>
-          <th scope="col">Agendamento</th>
+          <th scope="col">Tipo de Atendimento</th>
           <th scope="col">Data</th>
           <th scope="col">Horário</th>
           <th scope="col">Status</th>
@@ -30,7 +30,7 @@
                 class="btn-acao btn-validar"
                 @click="$emit('validate', agendamento)"
               >
-                Validar
+                Confirmar
               </button>
               <button
                 type="button"
@@ -64,122 +64,125 @@ defineEmits(['validate', 'show'])
 .tabela-wrapper {
   width: 100%;
   overflow-x: auto;
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background: var(--ser-white, #fff);
+  border: 1px solid var(--color-border, #dde3ef);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 48, 135, 0.08));
 }
 
 .tabela-gestao {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
 }
 
 .tabela-gestao th {
-  background-color: #f8fafc;
-  color: #475569;
-  font-weight: 600;
-  font-size: 0.8125rem;
+  background: #ffffff;
+  color: #003087;
+  font-weight: 700;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 1rem 1.25rem;
-  border-bottom: 2px solid #e2e8f0;
+  letter-spacing: 0.06em;
+  padding: 14px 20px;
+  border-bottom: 2px solid var(--color-border, #dde3ef);
   white-space: nowrap;
 }
 
 .tabela-gestao td {
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid #e2e8f0;
-  color: #334155;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--ser-gray-100, #eef1f7);
+  color: var(--ser-gray-900, #0d1b3e);
   vertical-align: middle;
+}
+
+.tabela-gestao tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .th-acoes {
   text-align: center;
 }
 
-.tabela-gestao tbody tr:nth-child(even) {
-  background-color: #f8fafc;
-}
-
 .tabela-gestao tbody tr:hover {
-  background-color: #f1f5f9;
+  background: var(--ser-gray-50, #f7f9fc);
 }
 
+/* Badges */
 .badge-status {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  border-radius: 9999px;
-  line-height: 1.2;
+  padding: 3px 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 20px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .badge-pendente {
-  background-color: #fff7ed;
-  color: #c2410c;
-  border: 1px solid #fed7aa;
+  background: rgba(180, 83, 9, 0.10);
+  color: #b45309;
+  border: 1px solid rgba(180, 83, 9, 0.25);
 }
 
 .badge-confirmado {
-  background-color: #ecfdf5;
-  color: #047857;
-  border: 1px solid #a7f3d0;
+  background: rgba(10, 122, 74, 0.10);
+  color: #0a7a4a;
+  border: 1px solid rgba(10, 122, 74, 0.25);
 }
 
 .badge-cancelado {
-  background-color: #fef2f2;
-  color: #b91c1c;
-  border: 1px solid #fecaca;
+  background: rgba(200, 16, 46, 0.10);
+  color: #C8102E;
+  border: 1px solid rgba(200, 16, 46, 0.25);
 }
 
+/* Ações */
 .acoes-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .btn-acao {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 0.45rem 0.85rem;
+  padding: 6px 14px;
   font-size: 0.8125rem;
   font-weight: 600;
-  border-radius: 6px;
-  border: 1px solid transparent;
+  border-radius: var(--radius-sm, 4px);
+  border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.18s, opacity 0.18s;
+  font-family: inherit;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .btn-validar {
-  background-color: #10b981;
-  color: #ffffff;
+  background: var(--color-success, #0a7a4a);
+  color: #fff;
 }
 
 .btn-validar:hover {
-  background-color: #059669;
+  background: #086040;
 }
 
 .btn-detalhes {
-  background-color: #3b82f6;
-  color: #ffffff;
+  background: var(--ser-navy, #003087);
+  color: #fff;
 }
 
 .btn-detalhes:hover {
-  background-color: #2563eb;
+  background: var(--ser-navy-light, #0045b5);
 }
 
 .mensagem-vazio {
   text-align: center;
-  padding: 2.5rem 1rem;
-  color: #64748b;
-  font-size: 0.95rem;
+  padding: 48px 1rem;
+  color: var(--ser-gray-500, #6b7a99);
+  font-size: 0.9375rem;
 }
 </style>

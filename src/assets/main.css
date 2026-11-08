@@ -1,4 +1,45 @@
-/* CSS Reset e variáveis globais do sistema de agendamentos */
+/* CSS Reset e variáveis globais — estilo SER Educacional */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  /* Paleta SER Educacional */
+  --ser-navy:         #003087;
+  --ser-navy-dark:    #001f5a;
+  --ser-navy-light:   #0045b5;
+  --ser-red:          #C8102E;
+  --ser-red-dark:     #9e0c24;
+  --ser-gold:         #F0A500;
+
+  /* Neutros */
+  --ser-white:        #ffffff;
+  --ser-gray-50:      #f7f9fc;
+  --ser-gray-100:     #eef1f7;
+  --ser-gray-200:     #dde3ef;
+  --ser-gray-300:     #c0cad9;
+  --ser-gray-500:     #6b7a99;
+  --ser-gray-700:     #374569;
+  --ser-gray-900:     #0d1b3e;
+
+  /* Semânticos */
+  --color-bg:          var(--ser-gray-50);
+  --color-surface:     var(--ser-white);
+  --color-primary:     var(--ser-navy);
+  --color-primary-hover: var(--ser-navy-light);
+  --color-danger:      var(--ser-red);
+  --color-success:     #0a7a4a;
+  --color-warning:     #b45309;
+  --color-border:      var(--ser-gray-200);
+  --color-text:        var(--ser-gray-900);
+  --color-text-muted:  var(--ser-gray-500);
+
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --shadow-sm:   0 1px 3px rgba(0, 48, 135, 0.08);
+  --shadow-md:   0 4px 16px rgba(0, 48, 135, 0.12);
+  --shadow-lg:   0 8px 32px rgba(0, 48, 135, 0.18);
+}
+
 *,
 *::before,
 *::after {
@@ -9,10 +50,10 @@
 
 body {
   min-height: 100vh;
-  color: #333;
-  background-color: #f5f5f5;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  font-size: 16px;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

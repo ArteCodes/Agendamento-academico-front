@@ -2,7 +2,7 @@
   <div class="modal-backdrop" @click.self="$emit('fechar')">
     <div class="modal-card">
       <header class="modal-cabecalho">
-        <h2 class="modal-titulo">Novo horário — {{ nomeDia }}</h2>
+        <h2 class="modal-titulo">Novo Horário &mdash; {{ nomeDia }}</h2>
         <button type="button" class="btn-fechar-icone" @click="$emit('fechar')">&times;</button>
       </header>
       <div class="modal-corpo">
@@ -17,7 +17,7 @@
             <input id="hora-inicio" v-model="horaInicio" type="time" class="input" required />
           </div>
           <div class="form-group">
-            <label for="duracao">Tempo (duração)</label>
+            <label for="duracao">Duração</label>
             <select id="duracao" v-model.number="duracaoMin" class="input">
               <option :value="30">30 min</option>
               <option :value="45">45 min</option>
@@ -38,11 +38,14 @@
             <option>Apoio Psicopedagógico</option>
           </select>
         </div>
-        <p class="preview">Horário: <strong>{{ horaInicio || '--:--' }} - {{ horaFim || '--:--' }}</strong></p>
+        <div class="preview-horario">
+          <span class="preview-label">Período:</span>
+          <strong>{{ horaInicio || '--:--' }} - {{ horaFim || '--:--' }}</strong>
+        </div>
         <p v-if="erro" class="erro">{{ erro }}</p>
       </div>
       <footer class="modal-rodape">
-        <button type="button" class="btn-acao btn-fechar-modal" @click="$emit('fechar')">Fechar</button>
+        <button type="button" class="btn-acao btn-fechar-modal" @click="$emit('fechar')">Cancelar</button>
         <button type="button" class="btn-acao btn-adicionar" @click="adicionar">Adicionar ao rascunho</button>
       </footer>
     </div>
@@ -90,21 +93,170 @@ function adicionar() {
 </script>
 
 <style scoped>
-.modal-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
-.modal-card { background: #fff; border-radius: 12px; width: 100%; max-width: 460px; overflow: hidden; }
-.modal-cabecalho { display: flex; justify-content: space-between; align-items: center; padding: 1.1rem 1.4rem; border-bottom: 1px solid #e2e8f0; }
-.modal-titulo { margin: 0; font-size: 1.1rem; color: #0f172a; }
-.btn-fechar-icone { background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b; }
-.modal-corpo { padding: 1.25rem 1.4rem; display: flex; flex-direction: column; gap: 12px; }
-.form-group { display: flex; flex-direction: column; gap: 6px; }
-.form-group label { font-size: 13px; font-weight: 600; color: #475569; }
-.form-linha { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.input { padding: 10px 12px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 14px; color: #1a202c; }
-.input:disabled { background: #f1f5f9; color: #64748b; }
-.preview { margin: 0; color: #334155; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; }
-.erro { margin: 0; color: #b91c1c; font-size: 0.85rem; }
-.modal-rodape { display: flex; justify-content: flex-end; gap: 0.75rem; padding: 1.1rem 1.4rem; background: #f8fafc; }
-.btn-acao { padding: 0.55rem 1rem; border-radius: 8px; border: 1px solid transparent; cursor: pointer; font-weight: 600; }
-.btn-adicionar { background: #16a34a; color: #fff; }
-.btn-fechar-modal { background: #e2e8f0; color: #334155; }
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 27, 62, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(2px);
+}
+
+.modal-card {
+  background: var(--ser-white, #fff);
+  border-radius: var(--radius-lg, 12px);
+  width: 100%;
+  max-width: 480px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 48, 135, 0.2);
+}
+
+.modal-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--color-border, #dde3ef);
+  background: var(--ser-gray-50, #f7f9fc);
+}
+
+.modal-titulo {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ser-navy, #003087);
+}
+
+.btn-fechar-icone {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--ser-gray-500, #6b7a99);
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.btn-fechar-icone:hover {
+  color: var(--ser-gray-900, #0d1b3e);
+}
+
+.modal-corpo {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ser-gray-700, #374569);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.form-linha {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.input {
+  padding: 11px 14px;
+  border: 1.5px solid var(--color-border, #dde3ef);
+  border-radius: var(--radius-md, 8px);
+  font-size: 0.9375rem;
+  color: var(--color-text, #0d1b3e);
+  background: var(--ser-white, #fff);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus {
+  border-color: var(--ser-navy, #003087);
+  box-shadow: 0 0 0 3px rgba(0, 48, 135, 0.10);
+}
+
+.input:disabled {
+  background: var(--ser-gray-100, #eef1f7);
+  color: var(--ser-gray-500, #6b7a99);
+}
+
+.preview-horario {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ser-gray-900, #0d1b3e);
+  background: rgba(0, 48, 135, 0.05);
+  border: 1px solid rgba(0, 48, 135, 0.15);
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 14px;
+  font-size: 0.9rem;
+}
+
+.preview-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ser-gray-500, #6b7a99);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.erro {
+  margin: 0;
+  color: var(--ser-red, #C8102E);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.modal-rodape {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  background: var(--ser-gray-50, #f7f9fc);
+  border-top: 1px solid var(--color-border, #dde3ef);
+  flex-wrap: wrap;
+}
+
+.btn-acao {
+  padding: 10px 20px;
+  border-radius: var(--radius-md, 8px);
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  transition: background 0.18s, opacity 0.18s;
+}
+
+.btn-adicionar {
+  background: var(--color-success, #0a7a4a);
+  color: #fff;
+}
+
+.btn-adicionar:hover {
+  background: #086040;
+}
+
+.btn-fechar-modal {
+  background: var(--ser-white, #fff);
+  color: var(--ser-gray-700, #374569);
+  border: 1.5px solid var(--color-border, #dde3ef) !important;
+}
+
+.btn-fechar-modal:hover {
+  background: var(--ser-gray-100, #eef1f7);
+}
 </style>
