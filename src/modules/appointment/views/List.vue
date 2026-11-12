@@ -4,12 +4,14 @@ import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/modules/auth/store/auth'
 import { useAppointmentStore } from '@/modules/appointment/store/appointment'
+import { useDataStore } from '@/modules/data/store/data'
 import TableList from '@/modules/appointment/model/TableList.vue'
 import FormShow from '@/modules/appointment/model/FormShow.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const appointmentStore = useAppointmentStore()
+const dataStore = useDataStore()
 const { userName, user, isCoordenador, isSuporte, canCreate } = storeToRefs(authStore)
 
 const filtroData = ref('')
@@ -20,9 +22,15 @@ const selectedAgendamento = ref(null)
 // Lista unificada por função (IDs):
 // aluno -> created_by/matricula/email próprios | coordenador -> coordinator_id == id | suporte -> created_by == id
 const agendamentosVisiveis = computed(() => appointmentStore.visiveisPorFuncao(user.value))
+
+// Oculta agendamentos com data anterior a hoje (preserva hoje e futuros)
+const agendamentosSemPassados = computed(() =>
+  agendamentosVisiveis.value.filter((a) => dataStore.isDateTodayOrFuture(a.data))
+)
+
 const agendamentosFiltrados = computed(() => {
-  if (!filtroData.value) return agendamentosVisiveis.value
-  return agendamentosVisiveis.value.filter((i) => i.data === filtroData.value)
+  if (!filtroData.value) return agendamentosSemPassados.value
+  return agendamentosSemPassados.value.filter((i) => i.data === filtroData.value)
 })
 // Coluna Aluno só faz sentido para quem vê agendamentos de terceiros
 const showAlunoColumn = computed(() => isCoordenador.value || isSuporte.value)

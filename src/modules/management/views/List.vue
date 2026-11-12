@@ -1,15 +1,22 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/modules/auth/store/auth'
 import { useManagementStore } from '@/modules/management/store/management'
+import { useDataStore } from '@/modules/data/store/data'
 import TableList from '@/modules/management/model/TableList.vue'
 import FormShow from '@/modules/management/model/FormShow.vue'
 
 const authStore = useAuthStore()
 const { userName } = storeToRefs(authStore)
 const managementStore = useManagementStore()
-const { agendamentos, totalAgendamentos, totalPendentes, totalConfirmados } = storeToRefs(managementStore)
+const dataStore = useDataStore()
+const { agendamentos: agendamentosTodos, totalAgendamentos, totalPendentes, totalConfirmados } = storeToRefs(managementStore)
+
+// Oculta agendamentos com data anterior a hoje (preserva hoje e futuros)
+const agendamentos = computed(() =>
+  agendamentosTodos.value.filter((a) => dataStore.isDateTodayOrFuture(a.data))
+)
 
 const agendamentoSelecionado = ref(null)
 const exibirModalDetalhes = ref(false)

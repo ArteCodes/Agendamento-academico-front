@@ -1,11 +1,5 @@
 import { defineStore } from 'pinia'
-
-// Lista de usuários simulados para autenticação (mock - estático, sem backend)
-export const mockUsers = [
-  { id: 1, nome: 'Maria Silva', email: 'aluno@teste.com', senha: '123456', tipo: 'aluno', matricula: '2026001' },
-  { id: 2, nome: 'João Santos', email: 'coord@teste.com', senha: '123456', tipo: 'coordenador', matricula: 'C001', carga_horaria_semanal: 20 },
-  { id: 3, nome: 'Suporte Silva', email: 'suporte@teste.com', senha: '123456', tipo: 'suporte', matricula: 'S001' }
-]
+import { useDataStore } from '@/modules/data/store/data'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -44,16 +38,23 @@ export const useAuthStore = defineStore('auth', {
       if (state.user?.carga_horaria_semanal != null) return Number(state.user.carga_horaria_semanal)
       if (state.user?.tipo === 'coordenador') return 20
       return 0
+    },
+
+    // Lista de todos os usuários cadastrados (fonte: dataStore)
+    allUsers: (state) => {
+      const dataStore = useDataStore()
+      return dataStore.users
     }
   },
 
   actions: {
     /**
-     * Valida credenciais contra os usuários simulados.
+     * Valida credenciais contra os usuários cadastrados no dataStore.
      * Atualiza o estado, persiste no localStorage e retorna true/false.
      */
     login(email, senha) {
-      const foundUser = mockUsers.find(
+      const dataStore = useDataStore()
+      const foundUser = dataStore.users.find(
         (u) => u.email === email && u.senha === senha
       )
 
@@ -66,6 +67,15 @@ export const useAuthStore = defineStore('auth', {
       }
 
       return false
+    },
+
+    /**
+     * Cadastra um novo usuário no sistema.
+     * Delegado ao dataStore (fonte centralizada).
+     */
+    criarUsuario(usuario) {
+      const dataStore = useDataStore()
+      return dataStore.criarUsuario(usuario)
     },
 
     /**
