@@ -1,22 +1,25 @@
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/modules/auth/store/auth'
 import FormCreate from '@/modules/auth/model/FormCreate.vue'
 import logoSer from '@/assets/logo-ser.png'
 
+const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 
 const email = ref('')
 const senha = ref('')
 const errorMsg = ref('')
+const successMsg = ref(route.query.cadastrado === '1' ? 'Conta criada com sucesso. Faça login para continuar.' : '')
 const isLoading = ref(false)
 
 const handleLogin = async () => {
   if (isLoading.value) return
   isLoading.value = true
   errorMsg.value = ''
+  successMsg.value = ''
   try {
     const success = await authStore.login(email.value, senha.value)
     if (success) {
@@ -64,8 +67,13 @@ const handleLogin = async () => {
             <h1 class="card-title">Acesso ao Sistema</h1>
             <p class="card-subtitle">Informe suas credenciais institucionais para continuar</p>
           </div>
+          <p v-if="successMsg" class="success-message">{{ successMsg }}</p>
           <FormCreate v-model:email="email" v-model:password="senha" :error-msg="errorMsg" @submit="handleLogin" />
-          <p class="login-footer-note">Acesso exclusivo para alunos e coordenadores cadastrados.</p>
+          <p class="login-footer-note">Acesso exclusivo para alunos, coordenadores e equipe de apoio cadastrados.</p>
+          <p class="login-cadastro-link">
+            Não possui conta?{' '}
+            <a href="#" @click.prevent="router.push('/cadastro')">Criar conta</a>
+          </p>
         </div>
       </main>
     </div>
@@ -235,5 +243,35 @@ const handleLogin = async () => {
   text-align: center;
   border-top: 1px solid var(--ser-gray-200, #dde3ef);
   padding-top: 1rem;
+}
+
+.login-cadastro-link {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: #374569;
+  text-align: center;
+}
+
+.login-cadastro-link a {
+  color: #003087;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.login-cadastro-link a:hover {
+  text-decoration: none;
+}
+
+.success-message {
+  margin-bottom: 1rem;
+  padding: 10px 14px;
+  border: 1px solid rgba(10, 122, 74, 0.25);
+  background: rgba(10, 122, 74, 0.07);
+  color: #0a7a4a;
+  border-radius: var(--radius-md, 8px);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
 }
 </style>

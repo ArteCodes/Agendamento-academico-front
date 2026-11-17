@@ -1,23 +1,36 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAppointmentStore } from '@/modules/appointment/store/appointment'
-import { useDataStore } from '@/modules/data/store/data'
 import TableList from '@/modules/calendar/model/TableList.vue'
+import { isDateTodayOrFuture } from '@/utils/date'
 
 const appointmentStore = useAppointmentStore()
-const dataStore = useDataStore()
 const { agendamentosConfirmados } = storeToRefs(appointmentStore)
-const dataAtual = ref(new Date(2026, 9, 15))
-const diaSelecionado = ref('2026-10-15')
+const pad = (n) => String(n).padStart(2, '0')
+const isoDe = (data) => `${data.getFullYear()}-${pad(data.getMonth() + 1)}-${pad(data.getDate())}`
+const dataAtual = ref(new Date(new Date().getFullYear(), new Date().getMonth(), 1))
+const diaSelecionado = ref(isoDe(new Date()))
 const nomesMeses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
 const diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
 const mesAtualNome = computed(() => nomesMeses[dataAtual.value.getMonth()])
 const anoAtual = computed(() => dataAtual.value.getFullYear())
 const mesAnterior = () => { dataAtual.value = new Date(dataAtual.value.getFullYear(), dataAtual.value.getMonth() - 1, 1) }
 const proximoMes = () => { dataAtual.value = new Date(dataAtual.value.getFullYear(), dataAtual.value.getMonth() + 1, 1) }
-const irParaHoje = () => { dataAtual.value = new Date(2026, 9, 15); diaSelecionado.value = '2026-10-15' }
-const pad = (n) => String(n).padStart(2, '0')
+const irParaHoje = () => {
+  const agora = new Date()
+  dataAtual.value = new Date(agora.getFullYear(), agora.getMonth(), 1)
+  diaSelecionado.value = isoDe(agora)
+}
+
+onMounted(async () => {
+  if (appointmentStore.agendamentos.length > 0) return
+  try {
+    await appointmentStore.listar()
+  } catch (error) {
+    console.error('Erro ao carregar agendamentos do calendário:', error)
+  }
+})
 const gradeDias = computed(() => {
   const ano = dataAtual.value.getFullYear(); const mes = dataAtual.value.getMonth()
   const primeiroDiaSemana = new Date(ano, mes, 1).getDay()
@@ -28,22 +41,22 @@ const gradeDias = computed(() => {
     const diaNum = totalDiasMesAnterior - i
     const mesAnt = mes === 0 ? 11 : mes - 1; const anoAnt = mes === 0 ? ano - 1 : ano
     const dataIso = `${anoAnt}-${pad(mesAnt + 1)}-${pad(diaNum)}`
-    dias.push({ numero: diaNum, dataIso, mesAtual: false, agendamentos: appointmentStore.confirmadosPorData(dataIso).filter((a) => dataStore.isDateTodayOrFuture(a.data)) })
+    dias.push({ numero: diaNum, dataIso, mesAtual: false, agendamentos: appointmentStore.confirmadosPorData(dataIso).filter((a) => isDateTodayOrFuture(a.data)) })
   }
   for (let d = 1; d <= totalDiasMes; d++) {
     const dataIso = `${ano}-${pad(mes + 1)}-${pad(d)}`
-    dias.push({ numero: d, dataIso, mesAtual: true, agendamentos: appointmentStore.confirmadosPorData(dataIso).filter((a) => dataStore.isDateTodayOrFuture(a.data)) })
+    dias.push({ numero: d, dataIso, mesAtual: true, agendamentos: appointmentStore.confirmadosPorData(dataIso).filter((a) => isDateTodayOrFuture(a.data)) })
   }
   const restante = (7 - (dias.length % 7)) % 7
   for (let p = 1; p <= restante; p++) {
     const mesProx = mes === 11 ? 0 : mes + 1; const anoProx = mes === 11 ? ano + 1 : ano
     const dataIso = `${anoProx}-${pad(mesProx + 1)}-${pad(p)}`
-    dias.push({ numero: p, dataIso, mesAtual: false, agendamentos: appointmentStore.confirmadosPorData(dataIso).filter((a) => dataStore.isDateTodayOrFuture(a.data)) })
+    dias.push({ numero: p, dataIso, mesAtual: false, agendamentos: appointmentStore.confirmadosPorData(dataIso).filter((a) => isDateTodayOrFuture(a.data)) })
   }
   return dias
 })
-const agendamentosDia = computed(() => diaSelecionado.value ? appointmentStore.confirmadosPorData(diaSelecionado.value).filter((a) => dataStore.isDateTodayOrFuture(a.data)) : [])
-const agendamentosConfirmadosVisiveis = computed(() => agendamentosConfirmados.value.filter((a) => dataStore.isDateTodayOrFuture(a.data)))
+const agendamentosDia = computed(() => diaSelecionado.value ? appointmentStore.confirmadosPorData(diaSelecionado.value).filter((a) => isDateTodayOrFuture(a.data)) : [])
+const agendamentosConfirmadosVisiveis = computed(() => agendamentosConfirmados.value.filter((a) => isDateTodayOrFuture(a.data)))
 const dataFormatada = computed(() => { if (!diaSelecionado.value) return ''; const [a, m, d] = diaSelecionado.value.split('-'); return `${d}/${m}/${a}` })
 const selecionarDia = (dia) => { diaSelecionado.value = dia.dataIso }
 </script>

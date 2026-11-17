@@ -1,85 +1,144 @@
 import { defineStore } from 'pinia'
-import { useDataStore } from '@/modules/data/store/data'
+import api from '@/services/api'
 
 export const useAppointmentStore = defineStore('appointment', {
   state: () => ({
+    agendamentos: [],
+    carregando: false,
+    erro: null,
   }),
 
   getters: {
-    // Delegado ao dataStore (fonte centralizada)
-    agendamentos: () => useDataStore().appointments,
-
     // Retorna todos os agendamentos com status 'Confirmado' (usados no calendário)
-    agendamentosConfirmados: () => {
-      return useDataStore().appointments.filter((a) => a.status === 'Confirmado')
+    agendamentosConfirmados: (state) => {
+      return state.agendamentos.filter((a) => a.status === 'Confirmado')
     },
 
     // Retorna agendamentos confirmados para uma data específica (YYYY-MM-DD)
-    confirmadosPorData: () => (dataStr) => {
-      return useDataStore().appointments.filter(
+    confirmadosPorData: (state) => (dataStr) => {
+      return state.agendamentos.filter(
         (a) => a.status === 'Confirmado' && a.data === dataStr
       )
     },
 
     // Retorna agendamentos de um aluno específico pelo email (legado)
-    agendamentosPorAluno: () => (email) => {
-      return useDataStore().appointments.filter((a) => a.alunoEmail === email)
+    agendamentosPorAluno: (state) => (email) => {
+      return state.agendamentos.filter((a) => a.alunoEmail === email)
     },
 
     // Visibilidade por função (lista unificada):
     // aluno -> created_by == id OU aluno_matricula == matricula OU alunoEmail == email
     // coordenador -> coordinator_id == id (só destinados, nunca todos)
     // suporte -> created_by == id (só próprios)
-    visiveisPorFuncao: () => (user) => {
+    visiveisPorFuncao: (state) => (user) => {
       if (!user) return []
-      const agendamentos = useDataStore().appointments
-      if (user.tipo === 'aluno') {
-        return agendamentos.filter(
+      const tipo = String(user.tipo || user.perfil || '').trim().toLowerCase()
+      const email = String(user.email || '').toLowerCase()
+      if (tipo === 'aluno') {
+        return state.agendamentos.filter(
           (a) =>
             a.created_by === user.id ||
             (user.matricula && a.aluno_matricula === user.matricula) ||
-            a.alunoEmail === user.email
+            String(a.alunoEmail || '').toLowerCase() === email
         )
       }
-      if (user.tipo === 'coordenador') {
-        return agendamentos.filter((a) => a.coordinator_id === user.id)
+      if (tipo === 'coordenador') {
+        return state.agendamentos.filter((a) => a.coordinator_id === user.id)
       }
-      if (user.tipo === 'suporte') {
-        return agendamentos.filter((a) => a.created_by === user.id)
+      if (tipo === 'suporte' || tipo === 'apoio') {
+        return state.agendamentos.filter((a) => a.created_by === user.id)
       }
       return []
     },
 
     // Contadores gerais
-    totalAgendamentos: () => useDataStore().appointments.length,
-    totalPendentes: () => useDataStore().appointments.filter((a) => a.status === 'Pendente').length,
-    totalConfirmados: () => useDataStore().appointments.filter((a) => a.status === 'Confirmado').length
+    totalAgendamentos: (state) => state.agendamentos.length,
+    totalPendentes: (state) => state.agendamentos.filter((a) => a.status === 'Pendente').length,
+    totalConfirmados: (state) => state.agendamentos.filter((a) => a.status === 'Confirmado').length,
   },
 
   actions: {
     /**
-     * Valida um agendamento, mudando seu status para 'Confirmado'.
-     * Isso faz o agendamento aparecer imediatamente no Calendário de Atendimento.
+     * Busca os agendamentos do backend filtrados pelo perfil do usuário logado.
      */
-    validarAgendamento(id) {
-      useDataStore().validarAgendamento(id)
+    async listar() {
+      this.carregando = true
+      this.erro = null
+      try {
+        const response = await api.get('/agendamentos')
+        this.agendamentos = response.data || []
+        return this.agendamentos
+      } catch (error) {
+        this.erro = error
+        console.error('Erro ao listar agendamentos:', error)
+        throw error
+      } finally {
+        this.carregando = false
+      }
     },
 
     /**
-     * Cancela um agendamento.
+     * Cria um novo agendamento via POST /api/agendamentos.
      */
-    cancelarAgendamento(id) {
-      useDataStore().cancelarAgendamento(id)
+    async criarAgendamento(novoAgendamento) {
+      try {
+        const response = await api.post('/agendamentos', novoAgendamento)
+        const criado = response.data
+        this.agendamentos.push(criado)
+        return criado
+      } catch (error) {
+        this.erro = error
+        console.error('Erro ao criar agendamento:', error)
+        throw error
+      }
     },
 
     /**
-     * Adiciona um novo agendamento.
-     * Preenche created_by / aluno_matricula / coordinator_id quando não informados.
+     * Cancela um agendamento via PATCH /api/agendamentos/{id}.
      */
-    criarAgendamento(novoAgendamento, criador = null) {
-      return useDataStore().criarAgendamento(novoAgendamento, criador)
-    }
-  }
+    async cancelarAgendamento(id) {
+      try {
+        const response = await api.patch(`/agendamentos/${id}`)
+        const atualizado = response.data
+        const index = this.agendamentos.findIndex((a) => a.id === id)
+        if (index !== -1) {
+          this.agendamentos[index] = atualizado
+        }
+        return atualizado
+      } catch (error) {
+        this.erro = error
+        console.error('Erro ao cancelar agendamento:', error)
+        throw error
+      }
+    },
+
+    /**
+     * Valida (confirma) um agendamento via PATCH /api/agendamentos/{id}/validar.
+     */
+    async validarAgendamento(id) {
+      try {
+        const response = await api.patch(`/agendamentos/${id}/validar`)
+        const atualizado = response.data
+        const index = this.agendamentos.findIndex((a) => a.id === id)
+        if (index !== -1) {
+          this.agendamentos[index] = atualizado
+        }
+        return atualizado
+      } catch (error) {
+        this.erro = error
+        console.error('Erro ao validar agendamento:', error)
+        throw error
+      }
+    },
+
+    /**
+     * Limpa a lista local (útil para logout ou reset).
+     */
+    limpar() {
+      this.agendamentos = []
+      this.erro = null
+    },
+  },
 })
 
 // Alias para compatibilidade com código antigo (stores/agendamentos.js)

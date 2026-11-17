@@ -12,6 +12,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const scheduleStore = useScheduleStore()
 const { user, userName, cargaHorariaSemanal } = storeToRefs(authStore)
+const { loading: scheduleLoading, error: scheduleError } = storeToRefs(scheduleStore)
 
 const DIAS = [
   { valor: 1, nome: 'Segunda' },
@@ -71,13 +72,28 @@ function adicionarRascunho(payload) {
   fecharModal()
 }
 function removerRascunho(item) { rascunho.value = rascunho.value.filter((r) => r.tempId !== item.tempId) }
-function removerSalvo(item) { scheduleStore.removerSalvo(item.id, coordId.value) }
-function confirmar() {
+async function removerSalvo(item) {
+  try {
+    await scheduleStore.removerSalvo(item.id, coordId.value)
+  } catch (err) {
+    erroGrade.value = scheduleStore.error || 'Erro ao remover horário.'
+  }
+}
+async function confirmar() {
   erroGrade.value = ''
   if (rascunho.value.length === 0) { erroGrade.value = 'Nenhum horário novo para confirmar.'; return }
-  scheduleStore.salvarLote(coordId.value, rascunho.value.map(({ tempId, hora_fim, ...r }) => r))
-  rascunho.value = []
+  try {
+    await scheduleStore.salvarLote(coordId.value, rascunho.value.map(({ tempId, hora_fim, ...r }) => r))
+    rascunho.value = []
+  } catch (err) {
+    erroGrade.value = scheduleStore.error || 'Erro ao salvar horários. Tente novamente.'
+  }
 }
+const btnConfirmarTexto = computed(() => {
+  if (scheduleLoading.value) return 'Confirmar e salvar...'
+  return `Confirmar e salvar (${rascunho.value.length} item${rascunho.value.length !== 1 ? 's' : ''})`
+})
+
 const precisaAvisar = computed(() => rascunho.value.length > 0 || minSalvos.value < metaMin.value)
 const mostrarSair = ref(false)
 const rotaPendente = ref(null)
@@ -96,18 +112,25 @@ function confirmarSaida() {
   router.push(destino)
 }
 function continuarEditando() { mostrarSair.value = false; rotaPendente.value = null }
-onBeforeRouteLeave((to, from, next) => {
-  if (liberadoParaSair.value || !precisaAvisar.value) return next()
+onBeforeRouteLeave((to, from) => {
+  if (liberadoParaSair.value || !precisaAvisar.value) return
   rotaPendente.value = to.fullPath
   mostrarSair.value = true
-  next(false)
+  return false
 })
 function aoBeforeUnload(e) {
   if (!precisaAvisar.value) return
   e.preventDefault()
   e.returnValue = ''
 }
-onMounted(() => { scheduleStore.carregar(coordId.value); window.addEventListener('beforeunload', aoBeforeUnload) })
+onMounted(async () => {
+  try {
+    if (coordId.value) await scheduleStore.fetchHorarios(coordId.value)
+  } catch (err) {
+    erroGrade.value = scheduleStore.error || 'Não foi possível carregar os horários.'
+  }
+  window.addEventListener('beforeunload', aoBeforeUnload)
+})
 onBeforeUnmount(() => { window.removeEventListener('beforeunload', aoBeforeUnload) })
 </script>
 
@@ -144,7 +167,7 @@ onBeforeUnmount(() => { window.removeEventListener('beforeunload', aoBeforeUnloa
     </section>
 
     <!-- Erro de grade -->
-    <p v-if="erroGrade" class="erro-grade">{{ erroGrade }}</p>
+    <p v-if="erroGrade || scheduleError" class="erro-grade">{{ erroGrade || scheduleError }}</p>
 
     <!-- Grade semanal -->
     <WeekGrid
@@ -161,10 +184,10 @@ onBeforeUnmount(() => { window.removeEventListener('beforeunload', aoBeforeUnloa
       <button
         type="button"
         class="btn-confirmar"
-        :disabled="rascunho.length === 0"
+        :disabled="rascunho.length === 0 || scheduleLoading"
         @click="confirmar"
       >
-        Confirmar e salvar ({{ rascunho.length }} item{{ rascunho.length !== 1 ? 's' : '' }})
+        {{ btnConfirmarTexto }}
       </button>
       <p class="ajuda">Sem confirmar, recarregar ou sair descarta os novos horários.</p>
     </footer>

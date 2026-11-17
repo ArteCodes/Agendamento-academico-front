@@ -1,15 +1,41 @@
 <script setup>
 import { RouterView, useRouter } from 'vue-router'
 import { useAuthStore } from '@/modules/auth/store/auth'
+import { useAppointmentStore } from '@/modules/appointment/store/appointment'
+import { useScheduleStore } from '@/modules/schedule/store/schedule'
 import { storeToRefs } from 'pinia'
 import logoUninassau from '@/assets/logo-uninassau.png'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const appointmentStore = useAppointmentStore()
+const scheduleStore = useScheduleStore()
 const { isAuthenticated, isAluno, isCoordenador, isSuporte, userName, userTipo } = storeToRefs(authStore)
 
-function handleLogout() {
-  authStore.logout()
+/**
+ * Remove chaves antigas de localStorage do módulo schedule (schedule:<coordId>).
+ * O gerenciamento de horários agora é feito via backend; não há mais motivo para manter
+ * dados de rascunho/confirmação no navegador do coordenador.
+ */
+function limparLocalStorageAntigo() {
+  try {
+    const chaves = Object.keys(localStorage)
+    const chavesSchedule = chaves.filter((k) => k.startsWith('schedule:'))
+    chavesSchedule.forEach((k) => localStorage.removeItem(k))
+    if (chavesSchedule.length > 0) {
+      console.log(`[App] ${chavesSchedule.length} chave(s) antiga(s) de schedule removida(s) do localStorage.`)
+    }
+  } catch (e) {
+    console.error('[App] Erro ao limpar localStorage antigo:', e)
+  }
+}
+
+limparLocalStorageAntigo()
+
+async function handleLogout() {
+  await authStore.logout()
+  appointmentStore.$reset()
+  scheduleStore.$reset()
   router.push('/login')
 }
 </script>
@@ -25,7 +51,7 @@ function handleLogout() {
 
     <div class="navbar-links">
       <!-- Link só para Aluno -->
-      <RouterLink v-if="isAluno" to="/agendamentos" class="nav-link">
+      <RouterLink v-if="isAluno || isSuporte" to="/agendamentos" class="nav-link">
         Meus Agendamentos
       </RouterLink>
 
@@ -44,8 +70,8 @@ function handleLogout() {
     <div class="navbar-user">
       <div class="user-info">
         <span class="user-name">{{ userName }}</span>
-        <span class="user-badge" :class="{ 'badge-aluno': isAluno, 'badge-coord': isCoordenador }">
-          {{ isAluno ? 'Aluno' : 'Coordenador' }}
+        <span class="user-badge" :class="{ 'badge-aluno': isAluno, 'badge-coord': isCoordenador, 'badge-suporte': isSuporte }">
+          {{ isAluno ? 'Aluno' : isSuporte ? 'Apoio' : 'Coordenador' }}
         </span>
       </div>
       <button class="btn-logout" @click="handleLogout">Sair</button>
@@ -168,6 +194,12 @@ function handleLogout() {
   background-color: rgba(200, 16, 46, 0.08);
   color: #C8102E;
   border: 1px solid rgba(200, 16, 46, 0.2);
+}
+
+.badge-suporte {
+  background-color: rgba(10, 122, 74, 0.08);
+  color: #0a7a4a;
+  border: 1px solid rgba(10, 122, 74, 0.2);
 }
 
 .btn-logout {

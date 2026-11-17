@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/modules/auth/store/auth'
@@ -18,11 +18,27 @@ const podeVer = computed(() => {
   return appointmentStore.visiveisPorFuncao(user.value).some((a) => a.id === item.value.id)
 })
 const podeValidar = computed(() => podeVer.value && canValidate.value && item.value?.status === 'Pendente')
-const validar = () => {
+const erro = ref('')
+const validar = async () => {
   if (!podeValidar.value) return
-  appointmentStore.validarAgendamento(item.value.id)
+  erro.value = ''
+  try {
+    await appointmentStore.validarAgendamento(item.value.id)
+  } catch (error) {
+    erro.value =
+      error?.response?.data?.detail || 'Não foi possível confirmar o agendamento.'
+  }
 }
 const voltar = () => router.push('/agendamentos')
+
+onMounted(async () => {
+  if (appointmentStore.agendamentos.length > 0) return
+  try {
+    await appointmentStore.listar()
+  } catch (error) {
+    erro.value = 'Não foi possível carregar o agendamento.'
+  }
+})
 </script>
 
 <template>
@@ -41,6 +57,8 @@ const voltar = () => router.push('/agendamentos')
       <div class="show-card">
         <FormShow v-if="item && podeVer" :item="item" />
         <p v-else class="estado-vazio">Agendamento não encontrado ou sem permissão de acesso.</p>
+
+        <p v-if="erro" class="erro-acao">{{ erro }}</p>
 
         <div class="show-actions">
           <button v-if="podeValidar" type="button" class="btn-validar" @click="validar">
@@ -159,5 +177,16 @@ const voltar = () => router.push('/agendamentos')
 
 .btn-secondary:hover {
   background: var(--ser-gray-100, #eef1f7);
+}
+
+.erro-acao {
+  margin: 16px 0;
+  padding: 10px 14px;
+  border: 1px solid rgba(200, 16, 46, 0.25);
+  background: rgba(200, 16, 46, 0.06);
+  color: var(--ser-red, #C8102E);
+  border-radius: var(--radius-md, 8px);
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 </style>

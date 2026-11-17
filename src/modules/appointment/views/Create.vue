@@ -1,5 +1,5 @@
 <script setup>
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/modules/auth/store/auth'
@@ -12,19 +12,39 @@ const appointmentStore = useAppointmentStore()
 const { userName, user } = storeToRefs(authStore)
 
 const form = reactive({ tipo: 'Consulta Psicológica', data: '', horario: '', local: 'Sala de Atendimento', descricao: '' })
+const erro = ref('')
+const salvando = ref(false)
 const updateField = ({ field, value }) => { form[field] = value }
 const voltar = () => router.push('/agendamentos')
-const handleSalvar = () => {
-  if (!form.tipo || !form.data || !form.horario) { alert('Por favor, preencha tipo, data e horário.'); return }
-  appointmentStore.criarAgendamento({
-    aluno: userName.value || 'Aluno',
-    alunoEmail: user.value?.email || 'aluno@teste.com',
-    aluno_matricula: user.value?.matricula || null,
-    created_by: user.value?.id ?? null,
-    coordinator_id: 2,
-    nome: form.tipo, data: form.data, horario: form.horario, local: form.local || 'A definir', descricao: form.descricao
-  }, user.value)
-  router.push('/agendamentos')
+const handleSalvar = async () => {
+  if (salvando.value) return
+  erro.value = ''
+  if (!form.tipo || !form.data || !form.horario) {
+    erro.value = 'Por favor, preencha tipo, data e horário.'
+    return
+  }
+
+  salvando.value = true
+  try {
+    await appointmentStore.criarAgendamento({
+      aluno: userName.value || 'Aluno',
+      alunoEmail: user.value?.email || '',
+      aluno_matricula: user.value?.matricula || null,
+      coordinator_id: null,
+      nome: form.tipo,
+      data: form.data,
+      horario: form.horario,
+      local: form.local || 'A definir',
+      descricao: form.descricao
+    })
+    router.push('/agendamentos')
+  } catch (error) {
+    erro.value =
+      error?.response?.data?.detail ||
+      'Não foi possível criar o agendamento. Verifique os dados e tente novamente.'
+  } finally {
+    salvando.value = false
+  }
 }
 </script>
 
@@ -42,6 +62,7 @@ const handleSalvar = () => {
 
       <!-- Card do formulário -->
       <div class="criar-card">
+        <p v-if="erro" class="erro-acao">{{ erro }}</p>
         <FormCreate :form="form" @update:field="updateField" @cancel="voltar" @submit="handleSalvar" />
       </div>
     </div>
@@ -107,5 +128,16 @@ const handleSalvar = () => {
   border-top: 4px solid var(--ser-navy, #003087);
   padding: 36px 32px;
   box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 48, 135, 0.12));
+}
+
+.erro-acao {
+  margin-bottom: 18px;
+  padding: 10px 14px;
+  border: 1px solid rgba(200, 16, 46, 0.25);
+  background: rgba(200, 16, 46, 0.06);
+  color: var(--ser-red, #C8102E);
+  border-radius: var(--radius-md, 8px);
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 </style>

@@ -1,12 +1,12 @@
 <template>
   <form @submit.prevent="$emit('submit')" class="login-form">
     <div class="form-group">
-      <label for="email">E-mail institucional</label>
+      <label for="email">E-mail, CPF ou Matrícula</label>
       <input
         id="email"
         :value="email"
-        type="email"
-        placeholder="seu.email@instituicao.edu.br"
+        type="text"
+        placeholder="E-mail, CPF ou Matrícula"
         autocomplete="email"
         required
         @input="$emit('update:email', $event.target.value)"

@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/modules/auth/store/auth'
 import AuthCreate from '@/modules/auth/views/Create.vue'
+import AuthRegister from '@/modules/auth/views/Register.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -9,6 +10,12 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: AuthCreate,
+      meta: { requiresAuth: false }
+    },
+    {
+      path: '/cadastro',
+      name: 'cadastro',
+      component: AuthRegister,
       meta: { requiresAuth: false }
     },
     {
@@ -66,8 +73,11 @@ const router = createRouter({
   ]
 })
 
-// Navigation Guard global - protege rotas por autenticação e role
-router.beforeEach((to, from, next) => {
+// Navigation Guard global - protege rotas por autenticação e role.
+// Importante: NÃO declarar o parâmetro `next` (API antiga). Com 3 parâmetros
+// o Vue Router exige next(); usando apenas retorno, a navegação é resolvida
+// automaticamente quando a função retorna.
+router.beforeEach((to) => {
   const authStore = useAuthStore()
 
   // Tenta carregar usuário do localStorage na primeira navegação
@@ -78,32 +88,30 @@ router.beforeEach((to, from, next) => {
   const requiresAuth = to.meta.requiresAuth
   const requiredRole = to.meta.role
 
-  // Se a rota não requer autenticação (ex: login), permite acesso
+  // Rotas públicas (login/cadastro)
   if (requiresAuth === false) {
-    // Se já está logado e tenta ir para login, redireciona para a lista unificada
     if (to.name === 'login' && authStore.isAuthenticated) {
-      return next('/agendamentos')
+      return { name: 'agendamentos' }
     }
-    return next()
+    return true
   }
 
-  // Se a rota requer autenticação e o usuário não está logado
+  // Rota protegida sem sessão
   if (requiresAuth && !authStore.isAuthenticated) {
-    return next('/login')
+    return { name: 'login' }
   }
 
   // Criação: só aluno ou suporte (coordenador não cria)
   if (to.meta.canCreate && !authStore.canCreate) {
-    return next('/agendamentos')
+    return { name: 'agendamentos' }
   }
 
-  // Se a rota requer um role específico e o tipo do usuário não bate
+  // Rota com role específico
   if (requiredRole && authStore.userTipo !== requiredRole) {
-    return next('/agendamentos')
+    return { name: 'agendamentos' }
   }
 
-  // Tudo certo, permite acesso
-  next()
+  return true
 })
 
 export default router

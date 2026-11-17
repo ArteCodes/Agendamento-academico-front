@@ -14,7 +14,7 @@ export const useManagementStore = defineStore('management', {
   },
   actions: {
     validarAgendamento(id) {
-      useAppointmentStore().validarAgendamento(id)
+      return useAppointmentStore().validarAgendamento(id)
     }
   }
 })

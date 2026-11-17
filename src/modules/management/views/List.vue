@@ -1,28 +1,49 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/modules/auth/store/auth'
 import { useManagementStore } from '@/modules/management/store/management'
-import { useDataStore } from '@/modules/data/store/data'
+import { useAppointmentStore } from '@/modules/appointment/store/appointment'
 import TableList from '@/modules/management/model/TableList.vue'
 import FormShow from '@/modules/management/model/FormShow.vue'
+import { isDateTodayOrFuture } from '@/utils/date'
 
 const authStore = useAuthStore()
 const { userName } = storeToRefs(authStore)
 const managementStore = useManagementStore()
-const dataStore = useDataStore()
+const appointmentStore = useAppointmentStore()
 const { agendamentos: agendamentosTodos, totalAgendamentos, totalPendentes, totalConfirmados } = storeToRefs(managementStore)
 
-// Oculta agendamentos com data anterior a hoje (preserva hoje e futuros)
 const agendamentos = computed(() =>
-  agendamentosTodos.value.filter((a) => dataStore.isDateTodayOrFuture(a.data))
+  agendamentosTodos.value.filter((a) => isDateTodayOrFuture(a.data))
 )
-
 const agendamentoSelecionado = ref(null)
 const exibirModalDetalhes = ref(false)
-const validarAgendamento = (ag) => managementStore.validarAgendamento(ag.id)
+const erro = ref('')
+
+const validarAgendamento = async (ag) => {
+  erro.value = ''
+  try {
+    await managementStore.validarAgendamento(ag.id)
+    if (agendamentoSelecionado.value?.id === ag.id) {
+      agendamentoSelecionado.value = { ...agendamentoSelecionado.value, status: 'Confirmado' }
+    }
+  } catch (error) {
+    erro.value =
+      error?.response?.data?.detail || 'Não foi possível confirmar o agendamento.'
+  }
+}
 const abrirDetalhes = (ag) => { agendamentoSelecionado.value = ag; exibirModalDetalhes.value = true }
 const fecharModal = () => { exibirModalDetalhes.value = false; agendamentoSelecionado.value = null }
+
+onMounted(async () => {
+  if (appointmentStore.agendamentos.length > 0) return
+  try {
+    await appointmentStore.listar()
+  } catch (error) {
+    erro.value = 'Não foi possível carregar os agendamentos.'
+  }
+})
 </script>
 
 <template>
@@ -34,6 +55,8 @@ const fecharModal = () => { exibirModalDetalhes.value = false; agendamentoSeleci
         <p class="painel-subtitulo">Bem-vindo(a), {{ userName }}. Gerencie os agendamentos abaixo.</p>
       </div>
     </header>
+
+    <p v-if="erro" class="erro-acao">{{ erro }}</p>
 
     <!-- Cards de métricas -->
     <section class="metricas-container">
@@ -259,5 +282,16 @@ const fecharModal = () => { exibirModalDetalhes.value = false; agendamentoSeleci
 
 .btn-fechar-modal:hover {
   background: var(--ser-gray-100, #eef1f7);
+}
+
+.erro-acao {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border: 1px solid rgba(200, 16, 46, 0.25);
+  background: rgba(200, 16, 46, 0.06);
+  color: var(--ser-red, #C8102E);
+  border-radius: var(--radius-md, 8px);
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 </style>

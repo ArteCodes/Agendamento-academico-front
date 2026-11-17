@@ -1,45 +1,60 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/modules/auth/store/auth'
 import { useAppointmentStore } from '@/modules/appointment/store/appointment'
-import { useDataStore } from '@/modules/data/store/data'
 import TableList from '@/modules/appointment/model/TableList.vue'
 import FormShow from '@/modules/appointment/model/FormShow.vue'
+import { isDateTodayOrFuture } from '@/utils/date'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const appointmentStore = useAppointmentStore()
-const dataStore = useDataStore()
 const { userName, user, isCoordenador, isSuporte, canCreate } = storeToRefs(authStore)
 
 const filtroData = ref('')
 const showModal = ref(false)
 const showDetailsModal = ref(false)
 const selectedAgendamento = ref(null)
+const erroAcao = ref('')
 
 // Lista unificada por função (IDs):
 // aluno -> created_by/matricula/email próprios | coordenador -> coordinator_id == id | suporte -> created_by == id
-const agendamentosVisiveis = computed(() => appointmentStore.visiveisPorFuncao(user.value))
-
-// Oculta agendamentos com data anterior a hoje (preserva hoje e futuros)
-const agendamentosSemPassados = computed(() =>
-  agendamentosVisiveis.value.filter((a) => dataStore.isDateTodayOrFuture(a.data))
+const agendamentosVisiveis = computed(() =>
+  appointmentStore
+    .visiveisPorFuncao(user.value)
+    .filter((a) => isDateTodayOrFuture(a.data))
 )
-
 const agendamentosFiltrados = computed(() => {
-  if (!filtroData.value) return agendamentosSemPassados.value
-  return agendamentosSemPassados.value.filter((i) => i.data === filtroData.value)
+  if (!filtroData.value) return agendamentosVisiveis.value
+  return agendamentosVisiveis.value.filter((i) => i.data === filtroData.value)
 })
+// Carrega os agendamentos do backend ao entrar na página
+onMounted(async () => {
+  try {
+    await appointmentStore.listar()
+  } catch (error) {
+    erroAcao.value = 'Não foi possível carregar os agendamentos. Tente novamente.'
+  }
+})
+
 // Coluna Aluno só faz sentido para quem vê agendamentos de terceiros
 const showAlunoColumn = computed(() => isCoordenador.value || isSuporte.value)
 // Coordenador não cancela pela lista (só valida no Show); aluno/suporte cancelam os próprios
 const canCancel = computed(() => !isCoordenador.value)
 const confirmCancel = (ag) => { selectedAgendamento.value = ag; showModal.value = true }
-const cancelAgendamento = () => {
-  if (selectedAgendamento.value) appointmentStore.cancelarAgendamento(selectedAgendamento.value.id)
-  closeModals()
+const cancelAgendamento = async () => {
+  erroAcao.value = ''
+  try {
+    if (selectedAgendamento.value) {
+      await appointmentStore.cancelarAgendamento(selectedAgendamento.value.id)
+    }
+    closeModals()
+  } catch (error) {
+    erroAcao.value = 'Não foi possível cancelar o agendamento.'
+    closeModals()
+  }
 }
 const showDetails = (ag) => { selectedAgendamento.value = ag; showDetailsModal.value = true }
 const closeModals = () => { showModal.value = false; showDetailsModal.value = false; selectedAgendamento.value = null }
@@ -72,6 +87,8 @@ const abrirShow = (ag) => router.push(`/agendamentos/${ag.id}`)
         </div>
       </div>
     </section>
+
+    <p v-if="erroAcao" class="erro-acao">{{ erroAcao }}</p>
 
     <!-- Tabela -->
     <TableList
@@ -327,5 +344,16 @@ const abrirShow = (ag) => router.push(`/agendamentos/${ag.id}`)
 
 .btn-danger:hover {
   background: var(--ser-red-dark, #9e0c24);
+}
+
+.erro-acao {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border: 1px solid rgba(200, 16, 46, 0.25);
+  background: rgba(200, 16, 46, 0.06);
+  color: var(--ser-red, #C8102E);
+  border-radius: var(--radius-md, 8px);
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 </style>
