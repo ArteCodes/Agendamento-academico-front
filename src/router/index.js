@@ -27,8 +27,39 @@ const router = createRouter({
     {
       path: '/agendamentos/criar',
       name: 'criar-agendamento',
-      component: () => import('@/modules/appointment/views/Create.vue'),
-      meta: { requiresAuth: true, canCreate: true }
+      component: () => import('@/modules/appointment/views/CreateFlow.vue'),
+      meta: { requiresAuth: true, canCreate: true },
+      children: [
+        {
+          path: '',
+          redirect: { name: 'criar-faq' }
+        },
+        {
+          path: 'faq',
+          name: 'criar-faq',
+          component: () => import('@/modules/appointment/views/create/Faq.vue')
+        },
+        {
+          path: 'coordenadores',
+          name: 'criar-coordenadores',
+          component: () => import('@/modules/appointment/views/create/Coordinators.vue')
+        },
+        {
+          path: 'horarios',
+          name: 'criar-horarios',
+          component: () => import('@/modules/appointment/views/create/Schedule.vue')
+        },
+        {
+          path: 'formulario',
+          name: 'criar-formulario',
+          component: () => import('@/modules/appointment/views/create/Form.vue')
+        },
+        {
+          path: 'resumo',
+          name: 'criar-resumo',
+          component: () => import('@/modules/appointment/views/create/Summary.vue')
+        }
+      ]
     },
     {
       path: '/agendamentos/:id',

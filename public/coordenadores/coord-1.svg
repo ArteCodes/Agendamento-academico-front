@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 700" role="img" aria-label="Foto fictícia de coordenador">
+  <defs>
+    <linearGradient id="fundo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#003087" />
+      <stop offset="1" stop-color="#0045b5" />
+    </linearGradient>
+  </defs>
+
+  <rect width="600" height="700" fill="url(#fundo)" />
+
+  <circle cx="300" cy="250" r="118" fill="#ffffff" opacity="0.14" />
+  <circle cx="300" cy="228" r="76" fill="#ffffff" opacity="0.85" />
+  <path d="M156 612c0-88 64-156 144-156s144 68 144 156z" fill="#ffffff" opacity="0.85" />
+
+  <text x="300" y="672" text-anchor="middle"
+        font-family="Inter, Arial, sans-serif" font-size="40" font-weight="700"
+        fill="#ffffff" opacity="0.92">COORDENAÇÃO</text>
+</svg>
